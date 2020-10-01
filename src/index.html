@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+<head>
+    <title>xFUND Emissions Algorithm Simulator</title>
+    <meta charset="UTF-8">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+<h1>xFUND Emissions Algorithm Simulator</h1>
+
+<p>
+    Simulator source code available on
+    <a href="https://github.com/unification-com/xfund-emissions-simulator" target="_blank">GitHub</a>
+</p>
+
+<h2>1. Calculating Allocation Entries</h2>
+
+<p>
+    At the point of running, the validator set is acquired from
+    <a href="https://rest.unification.io/staking/validators?limit=100" target="_blank">
+        https://rest.unification.io/staking/validators?limit=100
+    </a>. For the purposes of this simulation, it is refreshed when the page is reloaded, not when the "Run Simulation"
+    button is clicked.
+</p>
+
+<p>
+    The Validators' stake (self-delegated and delegated) is used to calculate their proportion of
+    the total ACTIVE network stake as a %. Delegations to inactive or jailed nodes do not count, and
+    jailed/inactive nodes are not included in the allocations.
+</p>
+
+<p>
+    The proportional value is multiplied by <strong><span id="entry_multiplier"></span></strong>
+    and rounded to give the "number of entries", with any validators resulting in zero, defaulting to
+    <strong><span id="default_for_zero"></span></strong> entry. The number of entries are for each of the 24 draws, with each draw being
+    mutually exclusive of one another (i.e. a validator has the same chance of being allocated xFUND in draw #4 as they do draw #19).
+</p>
+
+<table cellspacing="10">
+    <thead>
+    <tr>
+        <th>Validator</th>
+        <th>Token Stake</th>
+        <th>Stake Proportion</th>
+        <th># Entries</th>
+        <th>Allocation Probability</th>
+    </tr>
+    </thead>
+    <tbody id="emissions_body">
+
+    </tbody>
+</table>
+
+<h2>2. Running the Emissions</h2>
+
+<p>
+    An array containing <strong><span id="total_entries"></span></strong> entries is generated,
+    with each validitor being allocated their number of entries as per the table above. For example:
+</p>
+
+<pre>
+    entries[0] = BerlinFUNDCrew
+    entries[1] = BerlinFUNDCrew
+    entries[2] = BerlinFUNDCrew
+    entries[3] = BerlinFUNDCrew
+    entries[4] = BerlinFUNDCrew
+    entries[5] = ClanFund
+    entries[6] = ClanFund
+    entries[7] = Serenity
+    entries[8] = Serenity
+    entries[9] = Serenity
+    ...
+    entries[8976] = xSigma
+    entries[8977] = xSigma
+    entries[8978] = xSigma
+    entries[8979] = FUNDThailand
+    etc.
+</pre>
+
+<p>
+    For each of the 24 emissions, the entries array is shuffled to randomise the ordering, and a random number
+    between <strong>0 and <span id="total_entries1"></span></strong> is generated. This random bumber is used
+    as the array ID to select which validator the emission is allocated to.
+</p>
+
+<table>
+    <tr>
+        <td valign="top">
+            <h2>3. Emission Allocations</h2>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Emission #</th>
+                    <th>Array Idx</th>
+                    <th>Allocated To</th>
+                </tr>
+                </thead>
+                <tbody id="emissions_res_body">
+
+                </tbody>
+            </table>
+        </td>
+        <td valign="top">
+            <h2>Accumulated Emissions</h2>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Validator</th>
+                    <th>xFUND</th>
+                </tr>
+                </thead>
+                <tbody id="accumulated_emissions">
+
+                </tbody>
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+<p>
+    <button id="rerun">Run Simulation</button>
+</p>
+</body>
+</html>
