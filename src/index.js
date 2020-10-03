@@ -137,37 +137,64 @@ const loadData = () => {
 
 const generateEmissions = () =>  {
 
+    const emLogs = {}
+    const dateNow = new Date()
+
+    // log
+    emLogs.emission_date = dateNow
+
     document.getElementById("entry_multiplier").innerText = ENTRY_MULTIPLIER.toString()
     document.getElementById("default_for_zero").innerText = DEFAULT_FOR_ZERO.toString()
     let emissionsBody = document.getElementById("emissions_body")
     let emissionsRes = document.getElementById("emissions_res_body")
     let accumulatedEmissionsBody = document.getElementById("accumulated_emissions")
+    let emLogsContainer = document.getElementById("em_logs")
 
     emissionsBody.innerHTML = ''
     emissionsRes.innerHTML = ''
     accumulatedEmissionsBody.innerHTML = ''
+    emLogsContainer.value = ''
+
+    // log
+    emLogs.num_emissions = NUM_EMISSIONS
 
     const entrants = loadData()
+
+    // log
+    emLogs.entrants = entrants
+
     let norm
     let entries
     let emissionTickets
+    let emissionTicketsShuffled
+    let totalActiveStakes
     let allocationsDisplay = []
 
     if (Object.keys(entrants).length > 0) {
+        totalActiveStakes = getTotal(entrants)
         norm = normaliseProportionally(entrants)
         entries = getEntries(norm)
         emissionTickets = assignEntries(entries)
+        emissionTicketsShuffled = shuffleTickets(emissionTickets)
+        // log
+        emLogs.total_active_stakes = totalActiveStakes
+        emLogs.norm = norm
+        emLogs.entries = entries
+        emLogs.emission_tickets = emissionTickets
+        emLogs.emission_tickets_shuffled = emissionTicketsShuffled
+        emLogs.allocations = []
 
         for (let i = 1; i <= NUM_EMISSIONS; i += 1) {
-            const emissionTicketsShuffled = shuffleTickets(emissionTickets)
             const randNumber = getRandomEmission(emissionTicketsShuffled)
             const validatorMoniker = emissionTicketsShuffled[randNumber]
 
             let alloc = {
                 em: i,
-                idx: randNumber,
+                arr_idx: randNumber,
                 val: validatorMoniker
             }
+
+            emLogs.allocations.push(alloc)
 
             if(validatorMoniker in accumulated) {
                 accumulated[validatorMoniker] = accumulated[validatorMoniker] + 1
@@ -214,7 +241,7 @@ const generateEmissions = () =>  {
 
     for(let j = 0; j < allocationsDisplay.length; j += 1) {
         const alloc = allocationsDisplay[j]
-        let html = '<tr><td>' + alloc.em + '</td><td>' + alloc.idx + '</td><td>' + alloc.val + '</td></tr>'
+        let html = '<tr><td>' + alloc.em + '</td><td>' + alloc.arr_idx + '</td><td>' + alloc.val + '</td></tr>'
         emissionsRes.innerHTML += html
     }
 
@@ -223,6 +250,8 @@ const generateEmissions = () =>  {
         let html = '<tr><td>' + key + '</td><td>' + accumulated[key] + '</td></tr>'
         accumulatedEmissionsBody.innerHTML += html
     })
+
+    emLogsContainer.value = JSON.stringify(emLogs)
 }
 
 window.onload = async function() {
